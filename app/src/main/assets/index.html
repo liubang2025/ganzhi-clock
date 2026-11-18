@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>干支时钟屏保</title>
+    <!-- 引入精准的开源农历与八字历法库 -->
+    <script src="https://cdn.jsdelivr.net/npm/lunar-javascript@1.6.12/lunar.min.js"></script>
+    <style>
+        :root {
+            --bg-outer: #0d1218;
+            --bg-card: #161f2a;
+            --border-color: #263342;
+            --text-main: #ffffff;
+            --text-sub: #cbd5e1;
+            --text-muted: #8a99ad;
+            --divider: #263342;
+        }
+        body.light-theme {
+            --bg-outer: #dce3ea;
+            --bg-card: #f4f6f8;
+            --border-color: #d0d7de;
+            --text-main: #1e293b;
+            --text-sub: #334155;
+            --text-muted: #64748b;
+            --divider: #d8dee4;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        body {
+            background-color: var(--bg-outer);
+            color: var(--text-sub);
+            font-family: "Noto Serif SC", "Songti SC", "SimSun", -apple-system, serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            transition: background-color 0.4s ease;
+        }
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 45px 25px;
+            width: 88%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+            transition: all 0.4s ease, transform 2s ease-in-out;
+        }
+        .time-box {
+            font-family: "Georgia", "Times New Roman", serif;
+            font-size: 4.2rem;
+            font-weight: 400;
+            color: var(--text-main);
+            letter-spacing: 2px;
+            line-height: 1.1;
+            margin-bottom: 16px;
+        }
+        .seconds {
+            font-size: 1.5rem;
+            color: var(--text-muted);
+            margin-left: 6px;
+        }
+        .solar-date {
+            font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+            font-size: 1.05rem;
+            color: var(--text-sub);
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        .lunar-date {
+            font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+            font-size: 1rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            margin-bottom: 28px;
+        }
+        .line {
+            height: 1px;
+            background-color: var(--divider);
+            width: 100%;
+            margin: 22px 0;
+        }
+        .pillars {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+        }
+        .pillar {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        .pillar:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 8%;
+            height: 84%;
+            width: 1px;
+            background-color: var(--divider);
+        }
+        .gan, .zhi {
+            font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+            font-size: 2.3rem;
+            font-weight: 400;
+            line-height: 1.35;
+        }
+        .zhi { margin-bottom: 14px; }
+        .p-label {
+            font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        .jieqi {
+            font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+            font-size: 0.95rem;
+            color: var(--text-sub);
+            letter-spacing: 2px;
+            margin-top: 6px;
+        }
+        /* 五行配色（深色模式） */
+        .wood { color: #7ec699; }
+        .fire { color: #e8836b; }
+        .earth { color: #e5c07b; }
+        .metal { color: #cbd5e1; }
+        .water { color: #61afef; }
+        /* 五行配色（浅色模式适配） */
+        body.light-theme .wood { color: #2e7d32; }
+        body.light-theme .fire { color: #c84b31; }
+        body.light-theme .earth { color: #b58900; }
+        body.light-theme .metal { color: #64748b; }
+        body.light-theme .water { color: #1d6fa5; }
+    </style>
+</head>
+<body>
+
+<div class="card" id="clock-card" onclick="toggleTheme()">
+    <div class="time-box" id="time-box">18:03<span class="seconds" id="sec-box">33</span></div>
+    <div class="solar-date" id="solar-date">加载中...</div>
+    <div class="lunar-date" id="lunar-date">农历计算中...</div>
+    <div class="line"></div>
+    <div class="pillars">
+        <div class="pillar">
+            <span class="gan" id="y-gan">-</span>
+            <span class="zhi" id="y-zhi">-</span>
+            <span class="p-label">年</span>
+        </div>
+        <div class="pillar">
+            <span class="gan" id="m-gan">-</span>
+            <span class="zhi" id="m-zhi">-</span>
+            <span class="p-label">月</span>
+        </div>
+        <div class="pillar">
+            <span class="gan" id="d-gan">-</span>
+            <span class="zhi" id="d-zhi">-</span>
+            <span class="p-label">日</span>
+        </div>
+        <div class="pillar">
+            <span class="gan" id="h-gan">-</span>
+            <span class="zhi" id="h-zhi">-</span>
+            <span class="p-label">时</span>
+        </div>
+    </div>
+    <div class="line"></div>
+    <div class="jieqi" id="jieqi">节气 --</div>
+</div>
+
+<script>
+    const wuxingMap = {
+        '甲': 'wood', '乙': 'wood', '寅': 'wood', '卯': 'wood',
+        '丙': 'fire', '丁': 'fire', '巳': 'fire', '午': 'fire',
+        '戊': 'earth', '己': 'earth', '辰': 'earth', '戌': 'earth', '丑': 'earth', '未': 'earth',
+        '庚': 'metal', '辛': 'metal', '申': 'metal', '酉': 'metal',
+        '壬': 'water', '癸': 'water', '亥': 'water', '子': 'water'
+    };
+
+    const weekNames = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+
+    function toggleTheme() {
+        document.body.classList.toggle('light-theme');
+    }
+
+    function renderChar(id, char) {
+        const el = document.getElementById(id);
+        el.innerText = char;
+        el.className = el.className.split(' ')[0] + ' ' + (wuxingMap[char] || '');
+    }
+
+    function update() {
+        const now = new Date();
+        const h = String(now.getHours()).padStart(2, '0');
+        const m = String(now.getMinutes()).padStart(2, '0');
+        const s = String(now.getSeconds()).padStart(2, '0');
+
+        document.getElementById('time-box').innerHTML = `${h}:${m}<span class="seconds">${s}</span>`;
+        document.getElementById('solar-date').innerText = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日  ${weekNames[now.getDay()]}`;
+
+        if (typeof Solar !== 'undefined') {
+            const solar = Solar.fromDate(now);
+            const lunar = solar.getLunar();
+            const bazi = lunar.getEightChar();
+
+            document.getElementById('lunar-date').innerText = `农历 ${lunar.getYearInGanZhi()}年 ${lunar.getMonthInChinese()}月${lunar.getDayInChinese()}`;
+
+            const yg = bazi.getYearGan(), yz = bazi.getYearZhi();
+            const mg = bazi.getMonthGan(), mz = bazi.getMonthZhi();
+            const dg = bazi.getDayGan(), dz = bazi.getDayZhi();
+            const hg = bazi.getTimeGan(), hz = bazi.getTimeZhi();
+
+            renderChar('y-gan', yg); renderChar('y-zhi', yz);
+            renderChar('m-gan', mg); renderChar('m-zhi', mz);
+            renderChar('d-gan', dg); renderChar('d-zhi', dz);
+            renderChar('h-gan', hg); renderChar('h-zhi', hz);
+
+            const prevJieQi = lunar.getPrevJieQi(true);
+            document.getElementById('jieqi').innerText = `节气  ${prevJieQi ? prevJieQi.getName() : ''}`;
+        }
+    }
+
+    // 防烧屏微位移保护（每分钟微调 1-3 像素，肉眼无感但保护 OLED 屏幕）
+    setInterval(() => {
+        const dx = Math.floor(Math.random() * 6) - 3;
+        const dy = Math.floor(Math.random() * 6) - 3;
+        document.getElementById('clock-card').style.transform = `translate(${dx}px, ${dy}px)`;
+    }, 60000);
+
+    setInterval(update, 1000);
+    update();
+</script>
+</body>
+</html>
