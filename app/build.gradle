@@ -4,7 +4,7 @@ plugins {
 
 android {
     namespace 'com.ganzhi.clock'
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
         applicationId "com.ganzhi.clock"
@@ -27,5 +27,5 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
 }
